@@ -1,5 +1,6 @@
 package endpoints.play.server
 
+import endpoints.{Invalid, Valid}
 import endpoints.algebra.server.{DecodedUrl, EndpointsTestSuite}
 import play.api.Mode
 import play.api.routing.Router
@@ -19,9 +20,9 @@ class ServerInterpreterTest extends EndpointsTestSuite[Endpoints] with DefaultNe
   def decodeUrl[A](url: serverApi.Url[A])(rawValue: String): DecodedUrl[A] = {
     val request = FakeRequest("GET", rawValue)
     url.decodeUrl(request) match {
-      case None           => DecodedUrl.NotMatched
-      case Some(Left(_))  => DecodedUrl.Malformed
-      case Some(Right(a)) => DecodedUrl.Matched(a)
+      case None                  => DecodedUrl.NotMatched
+      case Some(Invalid(errors)) => DecodedUrl.Malformed(errors)
+      case Some(Valid(a))        => DecodedUrl.Matched(a)
     }
   }
 

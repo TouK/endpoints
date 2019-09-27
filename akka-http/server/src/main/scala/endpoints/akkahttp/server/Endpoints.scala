@@ -101,15 +101,10 @@ trait Endpoints extends algebra.Endpoints with Urls with Methods with StatusCode
     headers: RequestHeaders[C] = emptyHeaders
   )(implicit tuplerAB: Tupler.Aux[A, B, AB], tuplerABC: Tupler.Aux[AB, C, Out]): Request[Out] = {
     val methodDirective = convToDirective1(Directives.method(method))
-    // we use Directives.pathPrefix to construct url directives, so now we close it
-    val urlDirective = joinDirectives(url.directive, convToDirective1(Directives.pathEndOrSingleSlash))
-    joinDirectives(
-      joinDirectives(
-        joinDirectives(
-          methodDirective,
-          urlDirective),
-        entity),
-      headers)
+    val matchDirective = methodDirective & url.directive & headers
+    matchDirective.tflatMap { case (_, a, c) =>
+      entity.map(b => tuplerABC(tuplerAB(a, b), c))
+    }
   }
 
   def endpoint[A, B](
