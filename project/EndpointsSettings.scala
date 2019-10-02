@@ -34,30 +34,47 @@ object EndpointsSettings {
     crossScalaVersions := Seq("2.11.12", "2.12.6", "2.13.0-M2")
   )
 
-  val publishSettings = commonSettings ++ Seq(
-    pomExtra :=
-      <developers>
-        <developer>
-          <id>julienrf</id>
-          <name>Julien Richard-Foy</name>
-          <url>http://julien.richard-foy.fr</url>
-        </developer>
-      </developers>,
-    scalacOptions in (Compile, doc) ++= Seq(
-      "-doc-source-url", s"https://github.com/julienrf/endpoints/tree/v${version.value}€{FILE_PATH}.scala",
-      "-sourcepath", baseDirectory.in(LocalRootProject).value.getAbsolutePath
-    ),
-    apiURL := Some(url(s"http://julienrf.github.io/endpoints/api/${version.value}/")),
-    autoAPIMappings := true,
-    homepage := Some(url(s"https://github.com/julienrf/endpoints")),
-    licenses := Seq("MIT License" -> url("http://opensource.org/licenses/mit-license.php")),
-    scmInfo := Some(
-      ScmInfo(
-        url(s"https://github.com/julienrf/endpoints"),
-        s"scm:git:git@github.com:julienrf/endpoints.git"
-      )
-    )
+  val publishSettings: Seq[sbt.Def.Setting[_]] = Seq(
+    organization := "org.julienrf",
+    isSnapshot := containsSnapshot.value,
+    publishTo in ThisBuild := {
+      if (isSnapshot.value) Some("Sonatype Nexus" at Nexus.toukNexusSnapshotsUrl)
+      else Some("Sonatype Nexus" at Nexus.toukNexusReleasesUrl)
+    },
+    publishArtifact in(Compile, packageDoc) := false
   )
+
+  private def containsSnapshot: Def.Initialize[Boolean] = version(_.contains("SNAPSHOT"))
+
+  object Nexus {
+    val toukNexusSnapshotsUrl = "https://nexus.touk.pl/nexus/content/repositories/snapshots"
+    val toukNexusReleasesUrl = "https://nexus.touk.pl/nexus/content/repositories/releases"
+  }
+
+  //  val publishSettings = commonSettings ++ Seq(
+//    pomExtra :=
+//      <developers>
+//        <developer>
+//          <id>julienrf</id>
+//          <name>Julien Richard-Foy</name>
+//          <url>http://julien.richard-foy.fr</url>
+//        </developer>
+//      </developers>,
+//    scalacOptions in (Compile, doc) ++= Seq(
+//      "-doc-source-url", s"https://github.com/julienrf/endpoints/tree/v${version.value}€{FILE_PATH}.scala",
+//      "-sourcepath", baseDirectory.in(LocalRootProject).value.getAbsolutePath
+//    ),
+//    apiURL := Some(url(s"http://julienrf.github.io/endpoints/api/${version.value}/")),
+//    autoAPIMappings := true,
+//    homepage := Some(url(s"https://github.com/julienrf/endpoints")),
+//    licenses := Seq("MIT License" -> url("http://opensource.org/licenses/mit-license.php")),
+//    scmInfo := Some(
+//      ScmInfo(
+//        url(s"https://github.com/julienrf/endpoints"),
+//        s"scm:git:git@github.com:julienrf/endpoints.git"
+//      )
+//    )
+//  )
 
   val noPublishSettings = commonSettings ++ Seq(
     publishArtifact := false,
@@ -67,7 +84,7 @@ object EndpointsSettings {
 
   // --- Common dependencies
 
-  val circeVersion = "0.11.0"
+  val circeVersion = "0.12.1"
   val playjsonVersion = "2.6.13"
   val playVersion = "2.6.20"
   val sttpVersion = "1.5.2"
